@@ -82,8 +82,25 @@
             return arr;
         }
 
+        function renderImages(imagesArray) {
+            if (!imagesArray || imagesArray.length === 0) return '';
+            let html = '<div class="my-3 flex flex-wrap gap-2 justify-center">';
+            imagesArray.forEach(img => {
+                html += `<img src="${img}" class="max-w-full h-auto rounded border shadow-sm" alt="Hình ảnh câu hỏi">`;
+            });
+            html += '</div>';
+            return html;
+        }
+
         function loadExam() {
             isSubmitted = false;
+            
+            // Wait for data.js to load
+            if (!window.examData) {
+                setTimeout(loadExam, 100);
+                return;
+            }
+
             const examIndex = parseInt(document.getElementById('examSelector').value);
             
             if (examIndex === 10) {
@@ -119,12 +136,13 @@
 
                 html += `<div class="mb-6 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
                     <p class="font-semibold text-gray-800 mb-3 whitespace-pre-wrap"><span class="text-blue-600">Câu ${idx + 1}:</span> ${q.question.replace(/^Câu \d+[\.\:]\s*/, '')}</p>
+                    ${renderImages(q.images)}
                     <div class="space-y-2">`;
                 
                 shuffledOptions.forEach((opt, oIdx) => {
                     html += `
                         <label class="block relative cursor-pointer">
-                            <input type="radio" name="mcq_${idx}" value="${oIdx}" class="mcq-option sr-only" onchange="clearColors()">
+                            <input type="radio" name="mcq_${idx}" value="${oIdx}" class="mcq-option sr-only">
                             <div id="mcq_opt_${idx}_${oIdx}" class="p-3 border rounded-md transition-colors text-sm text-gray-700 hover:bg-gray-50">
                                 ${opt.text}
                             </div>
@@ -143,6 +161,7 @@
             currentData.tf.forEach((q, idx) => {
                 html += `<div class="mb-6 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
                     <p class="font-semibold text-gray-800 mb-3 whitespace-pre-wrap"><span class="text-blue-600">Câu ${idx + 1}:</span> ${q.question.replace(/^Câu \d+[\.\:]\s*/, '')}</p>
+                    ${renderImages(q.images)}
                     <div class="space-y-3">`;
                 
                 q.statements.forEach((stmt, sIdx) => {
@@ -151,11 +170,11 @@
                             <p class="text-sm text-gray-700 mb-2 sm:mb-0 sm:mr-4 flex-1">${stmt.text}</p>
                             <div class="flex space-x-2 shrink-0">
                                 <label class="cursor-pointer">
-                                    <input type="radio" name="tf_${idx}_${sIdx}" value="true" class="peer sr-only" onchange="clearColors()">
+                                    <input type="radio" name="tf_${idx}_${sIdx}" value="true" class="peer sr-only">
                                     <div class="w-12 text-center py-1 rounded border peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 font-medium text-sm transition-colors">Đúng</div>
                                 </label>
                                 <label class="cursor-pointer">
-                                    <input type="radio" name="tf_${idx}_${sIdx}" value="false" class="peer sr-only" onchange="clearColors()">
+                                    <input type="radio" name="tf_${idx}_${sIdx}" value="false" class="peer sr-only">
                                     <div class="w-12 text-center py-1 rounded border peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500 font-medium text-sm transition-colors">Sai</div>
                                 </label>
                             </div>
@@ -174,7 +193,8 @@
             currentData.sa.forEach((q, idx) => {
                 html += `<div class="mb-4 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
                     <p class="font-semibold text-gray-800 mb-3 whitespace-pre-wrap"><span class="text-blue-600">Câu ${idx + 1}:</span> ${q.question.replace(/^Câu \d+[\.\:]\s*/, '')}</p>
-                    <input type="text" id="sa_${idx}" placeholder="Nhập đáp án của em vào đây..." oninput="clearColors()" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition-shadow text-gray-800">
+                    ${renderImages(q.images)}
+                    <input type="text" id="sa_${idx}" placeholder="Nhập đáp án của em vào đây..." class="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition-shadow text-gray-800">
                     <p id="sa_ans_${idx}" class="hidden mt-2 text-sm font-semibold text-green-600"></p>
                 </div>`;
             });
@@ -182,10 +202,6 @@
 
             container.innerHTML = html;
             window.scrollTo(0,0);
-        }
-
-        function clearColors() {
-            // Placeholder nếu muốn reset logic khi học sinh sửa đáp án
         }
 
         function submitExam() {
